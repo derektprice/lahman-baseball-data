@@ -30,7 +30,7 @@ WHERE height IN
 	);
 
 -- Q3: Find all players in the database who played at Vanderbilt University. Create a list showing each player’s first and last names as well as the total salary they earned in the major leagues. Sort this list in descending order by the total salary earned. Which Vanderbilt player earned the most money in the majors?
--- A:
+-- A: David Price - no relation to me, as far as I know!
 
 --colleges code - 24 players
 -- SELECT 
@@ -38,33 +38,41 @@ WHERE height IN
 -- 	schoolid
 -- FROM collegeplaying as c
 -- WHERE schoolid = 'vandy'
--- ORDER BY playerid;
-
---salaries code - alvarpe01 =  20,681,704.00 
-
--- SELECT
--- 	s.playerid,
--- 	s.salary AS total_salary
--- FROM salaries as s
--- ORDER BY s.playerid
-
 
 SELECT
-	p.playerid,
+	s.playerid,
 	p.namefirst,
 	p.namelast,
-	SUM(s.salary)
-FROM people as p
-LEFT JOIN salaries as s
-ON p.playerid = s.playerid
-LEFT JOIN collegeplaying as c
-ON p.playerid = c.playerid
-WHERE c.playerid IN
-	(SELECT DISTINCT playerid
-	 FROM collegeplaying
-	 WHERE schoolid = 'vandy')
-GROUP BY p.playerid
-ORDER BY playerid;
+	SUM(s.salary) AS total_salary
+FROM salaries as s
+LEFT JOIN people as p
+ON s.playerid = p.playerid
+WHERE s.playerid IN (
+	SELECT 
+		DISTINCT playerid
+	FROM collegeplaying as c
+	WHERE schoolid = 'vandy')
+GROUP BY s.playerid, p.namefirst, p.namelast
+ORDER BY total_salary DESC;
+	
+
+
+-- SELECT
+-- 	p.playerid,
+-- 	p.namefirst,
+-- 	p.namelast,
+-- 	SUM(s.salary)
+-- FROM people as p
+-- LEFT JOIN salaries as s
+-- ON p.playerid = s.playerid
+-- LEFT JOIN collegeplaying as c
+-- ON p.playerid = c.playerid
+-- WHERE c.playerid IN
+-- 	(SELECT DISTINCT playerid
+-- 	 FROM collegeplaying
+-- 	 WHERE schoolid = 'vandy')
+-- GROUP BY p.playerid
+-- ORDER BY playerid;
 
 
 
