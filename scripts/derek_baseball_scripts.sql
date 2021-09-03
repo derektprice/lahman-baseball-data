@@ -2,7 +2,7 @@
 -- A1: 1871 to 2016
 SELECT
 	MIN(year) AS first_year,
-	MAX(YEAR) AS last_year
+	MAX(year) AS last_year
 FROM homegames;
 
 -- SELECT
@@ -73,19 +73,19 @@ GROUP BY position_group;
 
 
 -- 5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
--- A: run query. 
+-- A: run query. THIS IS SLIGHTLY WRONG - YOU NEED TO DO PER GAME! need number of games for dividing the total homeruns and strikeouts
 
-WITH data_stuff AS (SELECT
-	so AS strikeouts_by_batters,
-	hr as homeruns_by_batters,
-	FLOOR(yearid/10) * 10 AS decade
-FROM teams)
+WITH data_stuff AS (
+	SELECT
+		so AS strikeouts_by_batters,
+		hr as homeruns_by_batters,
+		FLOOR(yearid/10) * 10 AS decade
+	FROM teams)
 
 SELECT
-	ROUND(AVG(strikeouts_by_batters),2) AS avg_strikeouts,
-	ROUND(AVG(homeruns_by_batters),2) AS avg_homeruns,
 	decade,
-	
+	ROUND(AVG(strikeouts_by_batters),2) AS avg_strikeouts,
+	ROUND(AVG(homeruns_by_batters),2) AS avg_homeruns
 FROM data_stuff
 WHERE decade >=1920
 GROUP BY decade
@@ -121,10 +121,41 @@ ORDER BY success_rate DESC;
 -- 8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 -- A:
 
-SELECT *
+--Park Avg
+WITH park_avg AS (
+SELECT
+	park,
+	SUM(games) AS num_games,
+	ROUND(SUM(attendance::numeric)/SUM(games),2) AS avg_attend_per_game
 FROM homegames
 WHERE games >= 10 AND year = 2016
-ORDER BY park
+GROUP BY park
+ORDER BY avg_attend_per_game DESC),
+
+--Team avg
+team_avg AS (
+SELECT
+	team,
+	SUM(games) AS num_games,
+	ROUND(SUM(attendance::numeric)/SUM(games),2) AS avg_attend_per_game
+FROM homegames
+WHERE games >= 10 AND year = 2016
+GROUP BY team
+ORDER BY avg_attend_per_game DESC)
+
+SELECT
+	p.park,
+	t.team,
+	p.avg_attend_per_game
+FROM park_avg as p
+LEFT JOIN team_avg as t
+USING(avg_attend_per_game)
+ORDER BY p.avg_attend_per_game desc
+LIMIT 5;
+
+--for bottom 5
+-- ORDER BY p.avg_attend_per_game
+-- LIMIT 5;
 
 
 -- 9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
