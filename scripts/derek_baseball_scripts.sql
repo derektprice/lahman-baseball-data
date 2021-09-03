@@ -125,5 +125,38 @@ ORDER BY success_rate DESC;
 
 -- 9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 -- A:
+WITH pid_year_league AS (
+SELECT 
+	playerid,
+	yearid,
+	lgid
+FROM AwardsManagers
+WHERE awardid = 'TSN Manager of the Year' AND
+	lgid IN ('NL', 'AL')
+ORDER BY playerid),
+
+add_name_team AS (
+SELECT
+	pi.playerid,
+	p.nameFirst AS man_first,
+	p.nameLast AS man_last,
+	m.teamid AS team_managed,
+	pi.yearid AS award_year,
+	pi.lgid
+FROM pid_year_league as pi
+LEFT JOIN managers as m
+ON pi.playerid = m.playerid AND pi.yearid = m.yearid
+LEFT JOIN people as p
+ON pi.playerid = p.playerid
+WHERE pi.playerid IN
+	(SELECT playerid
+	 FROM pid_year_league
+	 GROUP BY playerid
+	 HAVING COUNT(DISTINCT lgid) = 2
+	)
+)
+
+SELECT *
+FROM add_name_team;
 
 
