@@ -106,7 +106,7 @@ SELECT p.namefirst,
 	p.playerid,
 	s.steal_attempts,
 	s.sum_steal_success,
-	ROUND(CAST(sum_steal_success AS dec) / steal_attempts, 2) AS success_rate
+	ROUND(CAST(sum_steal_success AS dec) / steal_attempts, 3) AS success_rate
 FROM steals_2016 as s
 LEFT JOIN people as p
 ON s.playerid = p.playerid
